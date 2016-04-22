@@ -1,0 +1,8 @@
+Debug
+Release
+ipch
+big-data/Debug
+big-data/Release
+*.ipch
+*.opensdf
+*.sdf
