@@ -27,6 +27,9 @@
     <ClInclude Include="u-console-mgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="u-curl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

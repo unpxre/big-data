@@ -3,13 +3,18 @@
 
 #include "stdafx.h"
 #include "iostream"
-
-#include "u-console-mgr.h"
+#include "string"
 
 using namespace std;
 
-int _tmain(int argc, _TCHAR* argv[])
-{
+#include "u-console-mgr.h"
+#include "u-curl.h"
+
+
+
+int _tmain(int argc, _TCHAR* argv[]) {
+
+	cout << DownWWW("http://pudelek.pl");
 
 	uConsoleMgr::echo("yolo\n", uConsoleMgr::CUTE);
 	system("pause");
