@@ -89,6 +89,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="u-console-mgr.h" />
     <ClInclude Include="u-curl.h" />
+    <ClInclude Include="u-utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="big-data.cpp" />

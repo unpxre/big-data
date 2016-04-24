@@ -30,6 +30,9 @@
     <ClInclude Include="u-curl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="u-utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
