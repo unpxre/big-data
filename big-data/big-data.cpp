@@ -8,6 +8,7 @@
 
 #include <boost/thread/thread.hpp>
 #include <boost/regex.hpp>
+#include <regex>
 
 using namespace std;
 
@@ -70,6 +71,7 @@ class SiteParser {
 				url = url.substr(5, (url.length() - 5)); //usuniecie hrefa
 				if ((url[0] == '\"') || (url[0] == '\'')) url = url.substr(1, (url.length() - 1)); //usniecie pierwszego " or '
 				if ((url[url.length() - 1] == '\"') || (url[url.length() - 1] == '\'')) url = url.substr(0, (url.length() - 1)); //usniecie ostaniego ' or "
+				if ((url[0] == '/') && (url[1] == '/')) continue; // pominiecie obcych hostow
 				if (url[0] == '/') url = baseLink + url; // dodanie hosta jesli brak
 				url = search_replace(url, "www.", "");
 				if (url.find(baseLink) == string::npos) continue;
@@ -91,6 +93,15 @@ class SiteParser {
 					string data = DownWWW(tmpUrl);
 					getUrls(data);
 					string content = getContentFunc(data);
+
+					regex script("<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>");
+					content = regex_replace(content, script, "");
+
+					regex span("<span\\b[^<]*(?:(?!<\\/span>)<[^<]*)*<\\/span>");
+					content = regex_replace(content, span, "");
+
+					regex tag("<[^>]*>");
+					content = regex_replace(content, tag, "");
 					std::cout << content << "\n---\n";
 				} else {
 					boost::this_thread::sleep(boost::posix_time::milliseconds(500));
