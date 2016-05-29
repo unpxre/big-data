@@ -1,0 +1,3 @@
+KIbana dzia³a na http://localhost:5601
+Njapierw jednak trzeba wygenerowaæ jakieœ dane, jako Index name or pattern  wpisaæ site
+i odznaczyæ Index contains time-based events 

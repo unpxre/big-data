@@ -8,6 +8,7 @@
 
 #include <boost/thread/thread.hpp>
 #include <boost/regex.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <regex>
 
 using namespace std;
@@ -16,14 +17,6 @@ using namespace std;
 #include "u-utils.h"
 #include "u-curl.h"
 
-/*
-	TODO:
-	[] pobrac linki
-	[] zwalidowac linki funckaj z paramtru
-	[] pobrac tresc funkcja z parametru
-	[] wyslac tersc do nowej klasy jaka sobie cos z tym zrobi...
-	[] nowa klasa z tym cos zrobi :)
-*/
 
 class SiteParser {
 	private:
@@ -89,8 +82,8 @@ class SiteParser {
 				//std::cout << "download'n: " << tmpUrl << endl;
 				if (tmpUrl != "ERR") {
 					//cout << ".";
-					std::cout << "download'n: " << tmpUrl << endl;
 					string data = DownWWW(tmpUrl);
+					std::cout << "download'd: " << tmpUrl << endl;
 					getUrls(data);
 					string content = getContentFunc(data);
 
@@ -102,7 +95,16 @@ class SiteParser {
 
 					regex tag("<[^>]*>");
 					content = regex_replace(content, tag, "");
-					std::cout << content << "\n---\n";
+
+					content = boost::replace_all_copy(content, "\"", "\\\"");
+					content = boost::replace_all_copy(content, "\n", "\\n");
+					content = boost::replace_all_copy(content, "\r", "");
+					content = boost::replace_all_copy(content, "\t", " ");
+					content = boost::replace_all_copy(content, "  ", " ");
+
+					std::cout << "es data: " << "{\"url\" : \"" + boost::replace_all_copy(tmpUrl, "\"", "'") + "\",\"art\" : \"" + content + "\"}" << std::endl;
+					data = DownWWW("http://localhost:9200/site/article", "{\"url\" : \"" + boost::replace_all_copy(tmpUrl, "\"", "'") + "\",\"art\" : \"" + content + "\"}");
+					std::cout << "add return:" << data << std::endl;
 				} else {
 					boost::this_thread::sleep(boost::posix_time::milliseconds(500));
 				}
@@ -139,7 +141,8 @@ string getArticle_pudelek_pl(string data) {
 
 int _tmain(int argc, _TCHAR* argv[]) {
 
-
+	//string data = DownWWW("http://localhost:9200/pudelek/article", "{\"settings\" : {\"number_of_shards\" : 2,\"number_of_replicas\" : 2},\"mappings\" : {\"_default_\" : {\"properties\" : {\"url\" : { \"type\" : \"string\", \"index\" :\"not_analyzed\" },\"art\" : { \"type\" : \"string\", \"index\" : \"not_analyzed\" }}}}}");
+	//std::cout << "create index return:" << data << std::endl;
 	new SiteParser("http://pudelek.pl", 1, &validateUrl_pudelek_pl, &getArticle_pudelek_pl);
 
 	//uConsoleMgr::echo("yolo\n", uConsoleMgr::CUTE);
