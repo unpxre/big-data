@@ -3,12 +3,14 @@
 
 #include "stdafx.h"
 #include "iostream"
+#include "fstream"
 #include "string"
 #include "set"
 
 #include <boost/thread/thread.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/lexical_cast.hpp>
 #include <regex>
 
 using namespace std;
@@ -31,6 +33,8 @@ class SiteParser {
 		validateFuncType validateFunc;
 		getContentType getContentFunc;
 		boost::mutex urlsMutex;
+		string url;
+		string postData;
 
 		string getUrlToParse() {
 			boost::mutex::scoped_lock mylock(urlsMutex);
@@ -81,9 +85,9 @@ class SiteParser {
 				string tmpUrl = getUrlToParse();
 				//std::cout << "download'n: " << tmpUrl << endl;
 				if (tmpUrl != "ERR") {
-					//cout << ".";
+					cout << ".";
 					string data = DownWWW(tmpUrl);
-					std::cout << "download'd: " << tmpUrl << endl;
+					uConsoleMgr::echo("download'd:: " + tmpUrl + "\n", uConsoleMgr::SUCCESS);
 					getUrls(data);
 					string content = getContentFunc(data);
 
@@ -102,9 +106,14 @@ class SiteParser {
 					content = boost::replace_all_copy(content, "\t", " ");
 					content = boost::replace_all_copy(content, "  ", " ");
 
-					std::cout << "es data: " << "{\"url\" : \"" + boost::replace_all_copy(tmpUrl, "\"", "'") + "\",\"art\" : \"" + content + "\"}" << std::endl;
-					data = DownWWW("http://localhost:9200/site/article", "{\"url\" : \"" + boost::replace_all_copy(tmpUrl, "\"", "'") + "\",\"art\" : \"" + content + "\"}");
-					std::cout << "add return:" << data << std::endl;
+					string url = boost::replace_all_copy(tmpUrl, "\"", "'");
+					string pd = this->postData;
+					pd = boost::replace_all_copy(pd, "[url]", url);
+					pd = boost::replace_all_copy(pd, "[art]", content);
+
+					//std::cout << "es data: " << pd << std::endl;
+					data = DownWWW(this->url, pd);
+					uConsoleMgr::echo("Elastic return: " + data + "\n", uConsoleMgr::WARNING);
 				} else {
 					boost::this_thread::sleep(boost::posix_time::milliseconds(500));
 				}
@@ -112,12 +121,15 @@ class SiteParser {
 		}
 
 	public:
-		SiteParser(string baseLink, unsigned int threads, validateFuncType validateFunc, getContentType getContentFunc) {
+		SiteParser(string baseLink, unsigned int threads, validateFuncType validateFunc, getContentType getContentFunc, string url, string postData) {
 			work = true;
 			this->baseLink = baseLink;
 			this->threads = threads;
 			this->validateFunc = validateFunc;
 			this->getContentFunc = getContentFunc;
+			this->url = url;
+			this->postData = postData;
+
 			pagesToParse.insert(baseLink);
 			boost::thread_group group;
 			for (int i = 0; i < this->threads; ++i) group.create_thread(boost::bind(&SiteParser::parsingThread, this));
@@ -140,10 +152,24 @@ string getArticle_pudelek_pl(string data) {
 }
 
 int _tmain(int argc, _TCHAR* argv[]) {
+	std::fstream confFileHandle;
+	string  conf[3]; // { THREADS / ELASTIC_URL / POSTDATA_TEMPLATE }
+	confFileHandle.open("conf.txt", ios::in);
+	if (confFileHandle.is_open()) {
+		string tmp;
+		for (int i = 0; confFileHandle.good() && i < 3; ++i) {
+			getline(confFileHandle, tmp);
+			conf[i] = tmp;
+		}
+	}
+	else {
+		uConsoleMgr::echo("Can not open conf file\n", uConsoleMgr::ALERT);
+		system("pause");
+		return  0;
+	}
 
-	//string data = DownWWW("http://localhost:9200/pudelek/article", "{\"settings\" : {\"number_of_shards\" : 2,\"number_of_replicas\" : 2},\"mappings\" : {\"_default_\" : {\"properties\" : {\"url\" : { \"type\" : \"string\", \"index\" :\"not_analyzed\" },\"art\" : { \"type\" : \"string\", \"index\" : \"not_analyzed\" }}}}}");
-	//std::cout << "create index return:" << data << std::endl;
-	new SiteParser("http://pudelek.pl", 1, &validateUrl_pudelek_pl, &getArticle_pudelek_pl);
+	uConsoleMgr::echo("RUn with " + conf[0] + " threads.\n", uConsoleMgr::CUTE);
+	new SiteParser("http://pudelek.pl", boost::lexical_cast<int>(conf[0]), &validateUrl_pudelek_pl, &getArticle_pudelek_pl, conf[1], conf[2]);
 
 	//uConsoleMgr::echo("yolo\n", uConsoleMgr::CUTE);
 	system("pause");

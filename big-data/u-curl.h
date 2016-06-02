@@ -53,17 +53,71 @@ string DownWWW(string link, string postdata = "", string referer = "", string co
 		}
 
 		// Post
+		//postdata = "";
 		if (postdata.length()>2) {
 			char *postthis = new char[postdata.size() + 1];
 			strcpy_s(postthis, strlen(postthis), postdata.c_str());
 			curl_easy_setopt(CMI.curl, CURLOPT_POSTFIELDS, postthis);
 			curl_easy_setopt(CMI.curl, CURLOPT_POSTFIELDSIZE, strlen(postthis));
+			std::cout << "##" << strlen(postthis) << "\n";
+			std::cout << "$$" << postthis << "\n";
 		}
 
+		std::cout << "%1" "\n";
 		CMI.result = curl_easy_perform(CMI.curl);
+		std::cout << "%2" "\n";
 		curl_easy_cleanup(CMI.curl);
+		std::cout << "%3" "\n";
+
 		if (CMI.result == CURLE_OK) return (string)CMI.content_;
 		else return (string)"ERROR";
 	}
 	else return (string)"ERROR";
+}
+
+
+
+
+string DownWWWq(string link, string postdata = "", string referer = "", string cookieFile = "", string userAgent = "Mozilla/5.0 (compatible msie 9.0 windows nt 6.1 wow64 trident/5.0)") {
+	CURL *curl;
+	CURLcode res;
+
+	//curl_global_init(CURL_GLOBAL_ALL);
+	curl = curl_easy_init();
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 30);
+	
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, link.c_str());
+		curl_easy_setopt(curl, CURLOPT_HEADER, 0);
+		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+		curl_easy_setopt(curl, CURLOPT_MAXCONNECTS, 100);
+		curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 100);
+
+		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
+		curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+
+
+		// Post
+		std::cout << "postdata" << postdata << "\n";
+		postdata = "postdata";
+		if (postdata.length()>2) {
+			char *postthis = new char[postdata.size() + 1];
+			strcpy_s(postthis, strlen(postthis), postdata.c_str());
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postthis);
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(postthis));
+		}
+
+		boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+		res = curl_easy_perform(curl);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+		curl_easy_cleanup(curl);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+		//curl_global_cleanup();
+
+
+	}
+	
+	return "";
 }
